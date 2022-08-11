@@ -19,9 +19,9 @@
 
 class Locksmith {
   static computeSignature (value) {
-    return Utils.computeHmacSha256Signature(
+    return this.computeHmacSha256Signature(
       value,
-      Utils.computeDigestSha256(
+      this.computeDigestSha256(
         (function () {
           const c = CacheService.getScriptCache();
           return c.get('locksmith') || (function () {
@@ -31,5 +31,25 @@ class Locksmith {
             return v;
           })();
         })() + Session.getTemporaryActiveUserKey()));
+  }
+
+  static computeDigestSha256 (value) {
+    return this.toHexString(
+      Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        value,
+        Utilities.Charset.UTF_8));
+  }
+
+  static computeHmacSha256Signature (value, key) {
+    return this.toHexString(
+      Utilities.computeHmacSha256Signature(
+        value, key, Utilities.Charset.UTF_8));
+  }
+
+  static toHexString (byteArray) {
+    return Array.from(byteArray, function (byte) {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
   }
 }
