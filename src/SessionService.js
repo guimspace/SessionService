@@ -18,28 +18,33 @@
  */
 
 class SessionService {
-  static endSession (uuid = '') {
-    const path = Locksmith.computeSignature(
-      ['session',
-        Session.getTemporaryActiveUserKey(),
-        uuid.concat('')].join('/'));
-    CacheService.getUserCache().remove(path);
+  static cache_ (scope) {
+    if (scope === 'user') return CacheService.getUserCache();
+    if (scope === 'script') return CacheService.getScriptCache();
+    if (scope === 'document') return CacheService.getDocumentCache();
+    throw new Error('Invalid scope.');
   }
 
-  static getSession (uuid) {
-    return new SuperSession(uuid);
+  static endSession (uuid, scope) {
+    this.cache_(scope).remove(
+      Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`));
   }
 
-  static hasSession (uuid = '') {
-    Utilities.sleep(400);
-    const path = Locksmith.computeSignature(
-      ['session',
-        Session.getTemporaryActiveUserKey(),
-        uuid.concat('')].join('/'));
-    return uuid === CacheService.getUserCache().get(path)?.uuid;
+  static getSession (uuid, scope) {
+    return new SessionNode(uuid, scope);
   }
 
-  static startSession () {
-    return new SuperSession();
+  static startSession (scope, ttl = 600) {
+    const uuid = Utilities.getUuid();
+    this.cache_(scope).put(
+      Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`),
+      {
+        ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
+        uuid,
+        contexts: {},
+        properties: {}
+      },
+      ttl > 0 ? ttl : 600);
+    return new SessionNode(uuid, scope);
   }
 }

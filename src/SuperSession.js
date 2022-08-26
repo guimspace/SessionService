@@ -18,87 +18,59 @@
  */
 
 class SuperSession {
-  constructor (uuid = '') {
-    this.cache_ = CacheService.getUserCache();
-    this._uuid = uuid.concat('') || Utilities.getUuid();
-    this._user = Session.getTemporaryActiveUserKey();
-    this._rootPath = Locksmith.computeSignature(['session', this._user, this._uuid].join('/'));
+  get cache_ () {
+    if (this._config.scope === 'user') return CacheService.getUserCache();
+    if (this._config.scope === 'script') return CacheService.getScriptCache();
+    if (this._config.scope === 'document') return CacheService.getDocumentCache();
+    throw new Error('Invalid scope.');
+  }
 
-    if (uuid) {
-      if (uuid !== this.cache_.get(this._rootPath)?.uuid) throw new Error('Session expired.');
+  get _session () {
+    return Object.freeze(this.cache_.get(this._address));
+  }
+
+  set _session (session) {
+    if (session.ttl === 0) {
+      this.cache_.put(this._address, session, 600);
     } else {
-      this.cache_.put(this._rootPath, {
-        ttl: new Date().getTime() + 600 * 1000,
-        uuid: this._uuid,
-        context: {}
-      });
+      const delta = this.ttl.delta();
+      if (delta > 0) this.cache_.put(this._address, session, delta);
+      else this.cache_.remove(this._address);
     }
   }
 
-  getContext_ (b, name) {
-    const session = this.getSession_();
-
-    const path = this.getPath_(name);
-    const uuid = session.context[path]?.uuid;
-    if (!uuid) return b ? null : this;
-
-    delete session.context[path];
-    this.cache_.put(this._rootPath, session);
-
-    const key = this.getPath_(name.concat(uuid));
-    const value = b ? this.cache_.get(key) : this;
-    this.cache_.remove(key);
-
-    return value;
+  get ttl () {
+    return {
+      time: this._config.ttl,
+      delta: function () {
+        return Math.floor((this.time - new Date().getTime()) / 1000);
+      }
+    };
   }
 
-  getPath_ (name = '') {
-    name.concat('');
-    if (!name.length) throw new Error('Invalid context name.');
-    return Locksmith.computeSignature(['session', this._user, this._uuid].concat(name).join('/'));
-  }
-
-  getSession_ () {
-    const session = this.cache_.get(this._rootPath);
-
-    if (session == null) throw new Error('Session expired.');
-    if (session.ttl < new Date().getTime()) {
-      this.cache_.remove(this._rootPath);
-      throw new Error('Session expired.');
-    }
-
-    return session;
-  }
-
-  createContext (name, value, expiration = 600) {
-    const uuid = Utilities.getUuid();
-    const t = expiration > 600 ? 600 : expiration;
-
-    const session = this.getSession_();
-
-    const path = this.getPath_(name);
-    session.context[path] = { uuid: uuid };
-    this.cache_.put(this._rootPath, session);
-
-    const key = this.getPath_(name.concat(uuid));
-    this.cache_.put(key, value, t);
-
-    return this;
+  deleteProperty (key) {
+    delete this._session?.properties[key];
   }
 
   end () {
-    this.cache_.remove(this._rootPath);
+    this.cache_.remove(this._address);
   }
 
-  endContext (name) {
-    return this.getContext_(0, name);
+  getProperty (key) {
+    return this._session?.properties[key];
   }
 
   getUuid () {
-    return this._uuid;
+    return this._config.uuid;
   }
 
-  retrieveContext (name) {
-    return this.getContext_(1, name);
+  isAlive () {
+    return this.ttl.delta() > 0;
+  }
+
+  setProperty (key, value) {
+    const session = this._session;
+    session.properties[key] = value;
+    this._session = session;
   }
 }
