@@ -26,6 +26,7 @@ class SessionService {
   }
 
   static endSession (uuid, scope) {
+    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.');
     this.cache_(scope).remove(
       Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`));
   }

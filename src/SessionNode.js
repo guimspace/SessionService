@@ -19,6 +19,8 @@
 
 class SessionNode extends SuperSession {
   constructor (uuid, scope) {
+    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.');
+
     super();
     this._config = { ttl: -1, uuid, scope };
 

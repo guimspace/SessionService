@@ -47,6 +47,10 @@ class Locksmith {
         value, key, Utilities.Charset.UTF_8));
   }
 
+  static testUuid (uuid) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(uuid);
+  }
+
   static toHexString (byteArray) {
     return Array.from(byteArray, function (byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
