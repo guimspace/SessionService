@@ -19,23 +19,23 @@
 
 class SuperSession {
   get cache_ () {
-    if (this._config.scope === 'user') return CacheService.getUserCache();
-    if (this._config.scope === 'script') return CacheService.getScriptCache();
-    if (this._config.scope === 'document') return CacheService.getDocumentCache();
-    throw new Error('Invalid scope.');
+    if (this._config.scope === 'user') return CacheService.getUserCache()
+    if (this._config.scope === 'script') return CacheService.getScriptCache()
+    if (this._config.scope === 'document') return CacheService.getDocumentCache()
+    throw new Error('Invalid scope.')
   }
 
   get _session () {
-    return Object.freeze(this.cache_.get(this._address));
+    return Object.freeze(this.cache_.get(this._address))
   }
 
   set _session (session) {
     if (session.ttl === 0) {
-      this.cache_.put(this._address, session, 600);
+      this.cache_.put(this._address, session, 600)
     } else {
-      const delta = this.ttl.delta();
-      if (delta > 0) this.cache_.put(this._address, session, delta);
-      else this.cache_.remove(this._address);
+      const delta = this.ttl.delta()
+      if (delta > 0) this.cache_.put(this._address, session, delta)
+      else this.cache_.remove(this._address)
     }
   }
 
@@ -43,34 +43,34 @@ class SuperSession {
     return {
       time: this._config.ttl,
       delta: function () {
-        return Math.floor((this.time - new Date().getTime()) / 1000);
+        return Math.floor((this.time - new Date().getTime()) / 1000)
       }
-    };
+    }
   }
 
   deleteProperty (key) {
-    delete this._session?.properties[key];
+    delete this._session?.properties[key]
   }
 
   end () {
-    this.cache_.remove(this._address);
+    this.cache_.remove(this._address)
   }
 
   getProperty (key) {
-    return this._session?.properties[key];
+    return this._session?.properties[key]
   }
 
   getUuid () {
-    return this._config.uuid;
+    return this._config.uuid
   }
 
   isAlive () {
-    return this.ttl.delta() > 0;
+    return this.ttl.delta() > 0
   }
 
   setProperty (key, value) {
-    const session = this._session;
-    session.properties[key] = value;
-    this._session = session;
+    const session = this._session
+    session.properties[key] = value
+    this._session = session
   }
 }

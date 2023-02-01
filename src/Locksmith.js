@@ -23,14 +23,14 @@ class Locksmith {
       value,
       this.computeDigestSha256(
         (function () {
-          const c = CacheService.getScriptCache();
+          const c = CacheService.getScriptCache()
           return c.get('locksmith') || (function () {
-            const v = PropertiesService.getScriptProperties().getProperty('locksmith');
-            if (!v) throw new Error('Value not found.');
-            c.put('locksmith', v);
-            return v;
-          })();
-        })() + Session.getTemporaryActiveUserKey()));
+            const v = PropertiesService.getScriptProperties().getProperty('locksmith')
+            if (!v) throw new Error('Value not found.')
+            c.put('locksmith', v)
+            return v
+          })()
+        })() + Session.getTemporaryActiveUserKey()))
   }
 
   static computeDigestSha256 (value) {
@@ -38,22 +38,22 @@ class Locksmith {
       Utilities.computeDigest(
         Utilities.DigestAlgorithm.SHA_256,
         value,
-        Utilities.Charset.UTF_8));
+        Utilities.Charset.UTF_8))
   }
 
   static computeHmacSha256Signature (value, key) {
     return this.toHexString(
       Utilities.computeHmacSha256Signature(
-        value, key, Utilities.Charset.UTF_8));
+        value, key, Utilities.Charset.UTF_8))
   }
 
   static testUuid (uuid) {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(uuid);
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(uuid)
   }
 
   static toHexString (byteArray) {
     return Array.from(byteArray, function (byte) {
-      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('');
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2)
+    }).join('')
   }
 }

@@ -19,43 +19,43 @@
 
 class SessionNode extends SuperSession {
   constructor (uuid, scope) {
-    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.');
+    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
 
-    super();
-    this._config = { ttl: -1, uuid, scope };
+    super()
+    this._config = { ttl: -1, uuid, scope }
 
-    const session = this._session;
-    if (uuid !== session?.uuid) throw new Error('Session expired.');
-    if (session.ttl && session.ttl < new Date().getTime()) throw new Error('Session expired.');
-    if (session.ttl === 0) this._session = session;
+    const session = this._session
+    if (uuid !== session?.uuid) throw new Error('Session expired.')
+    if (session.ttl && session.ttl < new Date().getTime()) throw new Error('Session expired.')
+    if (session.ttl === 0) this._session = session
 
-    this._config.ttl = session.ttl;
-    Object.freeze(this._config);
+    this._config.ttl = session.ttl
+    Object.freeze(this._config)
 
-    Object.freeze(this);
+    Object.freeze(this)
   }
 
   get _address () {
-    return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${this._config.uuid}/`);
+    return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${this._config.uuid}/`)
   }
 
   getContext (name) {
-    const session = this._session;
-    if (session.contexts[name]) return new SessionNode(session.contexts[name], this._config.scope);
+    const session = this._session
+    if (session.contexts[name]) return new SessionNode(session.contexts[name], this._config.scope)
 
-    const context = SessionService.startSession(this._config.scope, 0);
-    session.contexts[name] = context.getUuid();
-    this._session = session;
-    return context;
+    const context = SessionService.startSession(this._config.scope, 0)
+    session.contexts[name] = context.getUuid()
+    this._session = session
+    return context
   }
 
   removeContext (name) {
-    const session = this._session;
-    if (!session.contexts[name]) return;
+    const session = this._session
+    if (!session.contexts[name]) return
 
-    SessionService.endSession(session.contexts[name], this._config.scope);
+    SessionService.endSession(session.contexts[name], this._config.scope)
 
-    delete session.contexts[name];
-    this._session = session;
+    delete session.contexts[name]
+    this._session = session
   }
 }
