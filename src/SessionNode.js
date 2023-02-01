@@ -39,11 +39,11 @@ class SessionNode extends SuperSession {
     return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${this._config.uuid}/`)
   }
 
-  getContext (name) {
+  getContext (name, ttl = 0) {
     const session = this._session
     if (session.contexts[name]) return new SessionNode(session.contexts[name], this._config.scope)
 
-    const context = SessionService.startSession(this._config.scope, 0)
+    const context = SessionService.startSession(this._config.scope, ttl)
     session.contexts[name] = context.getUuid()
     this._session = session
     return context
