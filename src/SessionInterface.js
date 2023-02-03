@@ -17,15 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SessionInterface {
+class SessionInterface extends SessionData {
   constructor (scope) {
-    this._scope = scope
-
-    if (scope === 'user') this.cache_ = CacheService.getUserCache()
-    else if (scope === 'script') this.cache_ = CacheService.getScriptCache()
-    else if (scope === 'document ') this.cache_ = CacheService.getDocumentCache()
-    else throw new Error('Invalid scope.')
-
+    super(scope)
     Object.freeze(this)
   }
 

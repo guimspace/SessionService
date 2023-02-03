@@ -17,12 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SuperSession {
-  get cache_ () {
-    if (this._config.scope === 'user') return CacheService.getUserCache()
-    if (this._config.scope === 'script') return CacheService.getScriptCache()
-    if (this._config.scope === 'document') return CacheService.getDocumentCache()
-    throw new Error('Invalid scope.')
+class SuperSession extends SessionData {
+  constructor (scope) {
+    super(scope)
   }
 
   get _session () {
