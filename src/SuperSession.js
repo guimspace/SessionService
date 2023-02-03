@@ -72,5 +72,6 @@ class SuperSession {
     const session = this._session
     session.properties[key] = value
     this._session = session
+    return this
   }
 }
