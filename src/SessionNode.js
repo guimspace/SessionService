@@ -43,7 +43,7 @@ class SessionNode extends SuperSession {
     const session = this._session
     if (session.contexts[name]) return new SessionNode(session.contexts[name], this._config.scope)
 
-    const context = SessionService.startSession(this._config.scope, ttl)
+    const context = new SessionInterface(this._config.scope).startSession(ttl)
     session.contexts[name] = context.getUuid()
     this._session = session
     return context
@@ -53,7 +53,7 @@ class SessionNode extends SuperSession {
     const session = this._session
     if (!session.contexts[name]) return
 
-    SessionService.endSession(session.contexts[name], this._config.scope)
+    new SessionInterface(this._config.scope).endSession(session.contexts[name])
 
     delete session.contexts[name]
     this._session = session

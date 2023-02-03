@@ -18,42 +18,15 @@
  */
 
 class SessionService {
-  static cache_ (scope) {
-    if (scope === 'user') return CacheService.getUserCache()
-    if (scope === 'script') return CacheService.getScriptCache()
-    if (scope === 'document') return CacheService.getDocumentCache()
-    throw new Error('Invalid scope.')
+  static withUser () {
+    return new SessionInterface('user')
   }
 
-  static endSession (uuid, scope) {
-    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
-    this.cache_(scope).remove(
-      Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`))
+  static withScript () {
+    return new SessionInterface('script')
   }
 
-  static getSession (uuid, scope) {
-    return new SessionNode(uuid, scope)
-  }
-
-  static startSession (scope, ttl = 600) {
-    const uuid = Utilities.getUuid()
-    const address = Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
-    const data = {
-      ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
-      uuid,
-      contexts: {},
-      properties: {}
-    }
-
-    this.cache_(scope).put(address, data, ttl > 0 ? ttl : 600)
-    return new SessionNode(uuid, scope)
-  }
-
-  static trySession (uuid, scope) {
-    try {
-      return new SessionNode(uuid, scope)
-    } catch (err) {
-      return null
-    }
+  static withDocument () {
+    return new SessionInterface('document')
   }
 }
