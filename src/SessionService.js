@@ -37,15 +37,15 @@ class SessionService {
 
   static startSession (scope, ttl = 600) {
     const uuid = Utilities.getUuid()
-    this.cache_(scope).put(
-      Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`),
-      {
-        ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
-        uuid,
-        contexts: {},
-        properties: {}
-      },
-      ttl > 0 ? ttl : 600)
+    const address = Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
+    const data = {
+      ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
+      uuid,
+      contexts: {},
+      properties: {}
+    }
+
+    this.cache_(scope).put(address, data, ttl > 0 ? ttl : 600)
     return new SessionNode(uuid, scope)
   }
 }
