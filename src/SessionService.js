@@ -48,4 +48,12 @@ class SessionService {
     this.cache_(scope).put(address, data, ttl > 0 ? ttl : 600)
     return new SessionNode(uuid, scope)
   }
+
+  static trySession (uuid, scope) {
+    try {
+      return new SessionNode(uuid, scope)
+    } catch (err) {
+      return null
+    }
+  }
 }
