@@ -26,7 +26,7 @@ class SessionInterface extends SessionData {
   endSession (uuid) {
     if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
     this.cache_.remove(
-      Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`))
+      this.address_(uuid))
   }
 
   getSession (uuid) {
@@ -35,7 +35,7 @@ class SessionInterface extends SessionData {
 
   startSession (ttl = 600) {
     const uuid = Utilities.getUuid()
-    const address = Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
+    const address = this.address_(uuid)
     const data = {
       ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
       uuid,

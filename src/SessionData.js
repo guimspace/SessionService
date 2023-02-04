@@ -26,4 +26,8 @@ class SessionData {
     else if (scope === 'document ') this.cache_ = CacheService.getDocumentCache()
     else throw new Error('Invalid scope.')
   }
+
+  address_ (uuid) {
+    return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
+  }
 }

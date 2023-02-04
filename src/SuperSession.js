@@ -23,16 +23,24 @@ class SuperSession extends SessionData {
   }
 
   get _session () {
-    return Object.freeze(this.cache_.get(this._address))
+    return Object.freeze(
+      this.cache_.get(
+        this.address_(this._config.uuid)))
   }
 
   set _session (session) {
     if (session.ttl === 0) {
-      this.cache_.put(this._address, session, 600)
+      this.cache_.put(
+        this.address_(this._config.uuid), session, 600)
     } else {
       const delta = this.ttl.delta()
-      if (delta > 0) this.cache_.put(this._address, session, delta)
-      else this.cache_.remove(this._address)
+      if (delta > 0) {
+        this.cache_.put(
+          this.address_(this._config.uuid), session, delta)
+      } else {
+        this.cache_.remove(
+          this.address_(this._config.uuid))
+      }
     }
   }
 
@@ -50,7 +58,8 @@ class SuperSession extends SessionData {
   }
 
   end () {
-    this.cache_.remove(this._address)
+    this.cache_.remove(
+      this.address_(this._config.uuid))
   }
 
   getProperty (key) {
