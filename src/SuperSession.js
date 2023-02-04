@@ -18,10 +18,6 @@
  */
 
 class SuperSession extends SessionData {
-  constructor (scope) {
-    super(scope)
-  }
-
   get _session () {
     return Object.freeze(
       this.cache_.get(
