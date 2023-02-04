@@ -18,28 +18,29 @@
  */
 
 class SessionNode extends SuperSession {
-  constructor (uuid, scope) {
-    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
-
+  constructor (address, scope) {
     super(scope)
-    this._config = { ttl: -1, uuid }
 
-    const session = this._session
-    if (uuid !== session?.uuid) throw new Error('Session expired.')
+    const session = this.cache_.get(address)
+    if (!Locksmith.testUuid(session.uuid)) throw new Error('Invalid UUID.')
+
+    this._config = { level: session.level, ttl: session.ttl, uuid: session.uuid }
+    Object.freeze(this._config)
+
     if (session.ttl && session.ttl < new Date().getTime()) throw new Error('Session expired.')
     if (session.ttl === 0) this._session = session
-
-    this._config.ttl = session.ttl
-    Object.freeze(this._config)
 
     Object.freeze(this)
   }
 
   getContext (name, ttl = 0) {
     const session = this._session
-    if (session.contexts[name]) return new SessionNode(session.contexts[name], this._scope)
+    if (session.contexts[name]) {
+      const address = this.address_(session.contexts[name], this._config.level + 1)
+      return new SessionNode(address, this._scope)
+    }
 
-    const context = this.putSession_(ttl)
+    const context = this.putSession_(this._config.level + 1, ttl)
     session.contexts[name] = context.getUuid()
     this._session = session
     return context
@@ -49,7 +50,7 @@ class SessionNode extends SuperSession {
     const session = this._session
     if (!session.contexts[name]) return
 
-    this.removeSession_(session.contexts[name])
+    this.removeSession_(session.contexts[name], this._config.level + 1)
 
     delete session.contexts[name]
     this._session = session

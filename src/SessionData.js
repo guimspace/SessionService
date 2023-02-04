@@ -27,14 +27,15 @@ class SessionData {
     else throw new Error('Invalid scope.')
   }
 
-  address_ (uuid) {
-    return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
+  address_ (uuid, level) {
+    return Locksmith.computeSignature(`${level}/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
   }
 
-  putSession_ (ttl) {
+  putSession_ (level, ttl) {
     const uuid = Utilities.getUuid()
-    const address = this.address_(uuid)
+    const address = this.address_(uuid, level)
     const data = {
+      level,
       ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
       uuid,
       contexts: {},
@@ -45,8 +46,8 @@ class SessionData {
     return new SessionNode(address, this._scope)
   }
 
-  removeSession_ (uuid) {
-    const address = this.address_(uuid)
+  removeSession_ (uuid, level) {
+    const address = this.address_(uuid, level)
     this.cache_.remove(address)
   }
 }

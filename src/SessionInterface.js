@@ -25,20 +25,22 @@ class SessionInterface extends SessionData {
 
   endSession (uuid) {
     if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
-    this.removeSession_(uuid)
+    this.removeSession_(uuid, 0)
   }
 
   getSession (uuid) {
-    return new SessionNode(uuid, this._scope)
+    const address = this.address_(uuid, 0)
+    return new SessionNode(address, this._scope)
   }
 
   startSession (ttl = 600) {
-    return this.putSession_(ttl)
+    return this.putSession_(0, ttl)
   }
 
   trySession (uuid) {
+    const address = this.address_(uuid, 0)
     try {
-      return new SessionNode(uuid, this._scope)
+      return new SessionNode(address, this._scope)
     } catch (err) {
       return null
     }
