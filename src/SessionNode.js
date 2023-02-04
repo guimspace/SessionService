@@ -21,8 +21,8 @@ class SessionNode extends SuperSession {
   constructor (uuid, scope) {
     if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
 
-    super()
-    this._config = { ttl: -1, uuid, scope }
+    super(scope)
+    this._config = { ttl: -1, uuid }
 
     const session = this._session
     if (uuid !== session?.uuid) throw new Error('Session expired.')
@@ -35,15 +35,11 @@ class SessionNode extends SuperSession {
     Object.freeze(this)
   }
 
-  get _address () {
-    return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${this._config.uuid}/`)
-  }
-
   getContext (name, ttl = 0) {
     const session = this._session
-    if (session.contexts[name]) return new SessionNode(session.contexts[name], this._config.scope)
+    if (session.contexts[name]) return new SessionNode(session.contexts[name], this._scope)
 
-    const context = SessionService.startSession(this._config.scope, ttl)
+    const context = this.putSession_(ttl)
     session.contexts[name] = context.getUuid()
     this._session = session
     return context
@@ -53,7 +49,7 @@ class SessionNode extends SuperSession {
     const session = this._session
     if (!session.contexts[name]) return
 
-    SessionService.endSession(session.contexts[name], this._config.scope)
+    this.removeSession_(session.contexts[name])
 
     delete session.contexts[name]
     this._session = session

@@ -17,25 +17,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SuperSession {
-  get cache_ () {
-    if (this._config.scope === 'user') return CacheService.getUserCache()
-    if (this._config.scope === 'script') return CacheService.getScriptCache()
-    if (this._config.scope === 'document') return CacheService.getDocumentCache()
-    throw new Error('Invalid scope.')
+class SuperSession extends SessionData {
+  constructor (scope) {
+    super(scope)
   }
 
   get _session () {
-    return Object.freeze(this.cache_.get(this._address))
+    return Object.freeze(
+      this.cache_.get(
+        this.address_(this._config.uuid)))
   }
 
   set _session (session) {
     if (session.ttl === 0) {
-      this.cache_.put(this._address, session, 600)
+      this.cache_.put(
+        this.address_(this._config.uuid), session, 600)
     } else {
       const delta = this.ttl.delta()
-      if (delta > 0) this.cache_.put(this._address, session, delta)
-      else this.cache_.remove(this._address)
+      if (delta > 0) {
+        this.cache_.put(
+          this.address_(this._config.uuid), session, delta)
+      } else {
+        this.cache_.remove(
+          this.address_(this._config.uuid))
+      }
     }
   }
 
@@ -53,7 +58,8 @@ class SuperSession {
   }
 
   end () {
-    this.cache_.remove(this._address)
+    this.cache_.remove(
+      this.address_(this._config.uuid))
   }
 
   getProperty (key) {

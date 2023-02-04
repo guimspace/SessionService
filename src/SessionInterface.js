@@ -1,6 +1,6 @@
 /**
  * SessionService: Temporarily caches values for streamline processing
- * Copyright (C) 2022 Guilherme T Maeoka
+ * Copyright (C) 2022-2023 Guilherme T Maeoka
  * <https://github.com/guimspace/SessionService>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,16 +17,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SessionService {
-  static withUser () {
-    return new SessionInterface('user')
+class SessionInterface extends SessionData {
+  constructor (scope) {
+    super(scope)
+    Object.freeze(this)
   }
 
-  static withScript () {
-    return new SessionInterface('script')
+  endSession (uuid) {
+    if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
+    this.removeSession_(uuid)
   }
 
-  static withDocument () {
-    return new SessionInterface('document')
+  getSession (uuid) {
+    return new SessionNode(uuid, this._scope)
+  }
+
+  startSession (ttl = 600) {
+    return this.putSession_(ttl)
+  }
+
+  trySession (uuid) {
+    try {
+      return new SessionNode(uuid, this._scope)
+    } catch (err) {
+      return null
+    }
   }
 }
