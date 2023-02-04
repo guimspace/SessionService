@@ -30,4 +30,23 @@ class SessionData {
   address_ (uuid) {
     return Locksmith.computeSignature(`/session/${Session.getTemporaryActiveUserKey()}/${uuid}/`)
   }
+
+  putSession_ (ttl) {
+    const uuid = Utilities.getUuid()
+    const address = this.address_(uuid)
+    const data = {
+      ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
+      uuid,
+      contexts: {},
+      properties: {}
+    }
+
+    this.cache_.put(address, data, ttl > 0 ? ttl : 600)
+    return new SessionNode(address, this._scope)
+  }
+
+  removeSession_ (uuid) {
+    const address = this.address_(uuid)
+    this.cache_.remove(address)
+  }
 }

@@ -25,8 +25,7 @@ class SessionInterface extends SessionData {
 
   endSession (uuid) {
     if (!Locksmith.testUuid(uuid)) throw new Error('Invalid UUID.')
-    this.cache_.remove(
-      this.address_(uuid))
+    this.removeSession_(uuid)
   }
 
   getSession (uuid) {
@@ -34,17 +33,7 @@ class SessionInterface extends SessionData {
   }
 
   startSession (ttl = 600) {
-    const uuid = Utilities.getUuid()
-    const address = this.address_(uuid)
-    const data = {
-      ttl: ttl > 0 ? new Date().getTime() + ttl * 1000 : 0,
-      uuid,
-      contexts: {},
-      properties: {}
-    }
-
-    this.cache_.put(address, data, ttl > 0 ? ttl : 600)
-    return new SessionNode(uuid, this._scope)
+    return this.putSession_(ttl)
   }
 
   trySession (uuid) {
