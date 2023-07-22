@@ -22,6 +22,7 @@ class SessionNode extends SuperSession {
     super(scope)
 
     const session = this.cache_.get(address)
+    if (!session) throw new Error('Session expired.')
     if (!Locksmith.testUuid(session.uuid)) throw new Error('Invalid UUID.')
 
     this._config = { level: session.level, ttl: session.ttl, uuid: session.uuid }
